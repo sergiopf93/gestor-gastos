@@ -588,7 +588,7 @@
     <div class="card-label">Importe</div>
     <div class="importe-wrap">
       <span class="importe-symbol">€</span>
-      <input type="number" id="importe" inputmode="decimal" placeholder="0,00" step="0.01" min="0" />
+      <input type="text" id="importe" inputmode="decimal" placeholder="0,00" />
     </div>
   </div>
 
@@ -775,7 +775,7 @@ function pickDay(day) {
 
 // ── ENVIAR ───────────────────────────────────────────────────
 async function enviarGasto() {
-  const importe = parseFloat(document.getElementById('importe').value);
+  const importe = parseFloat(document.getElementById('importe').value.replace(',','.'));
   if (!selectedTipo)           { showToast('Selecciona un tipo de gasto'); return; }
   if (!importe || importe <= 0){ showToast('Introduce un importe válido'); return; }
 
