@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gastos">
+<meta name="theme-color" content="#f7faf7">
+<title>Gastos</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #f4f7f4;
+    --white:      #ffffff;
+    --green:      #1a7a3c;
+    --green-mid:  #2d9e52;
+    --green-soft: #e8f5ec;
+    --green-pale: #f0faf2;
+    --border:     #daeade;
+    --border-lt:  #edf6ef;
+    --text:       #0e2015;
+    --text-mid:   #3a5c44;
+    --text-dim:   #7aA082;
+    --text-faint: #b8d4be;
+    --radius:     18px;
+    --radius-sm:  10px;
+    --shadow:     0 2px 16px rgba(26,122,60,0.08);
+    --shadow-lg:  0 8px 40px rgba(26,122,60,0.12);
+
+    /* Gasto colors */
+    --c-compra:       #16a34a;
+    --c-gasolina:     #d97706;
+    --c-restaurantes: #db2777;
+    --c-farmacia:     #2563eb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Fraunces', serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px calc(env(safe-area-inset-bottom) + 48px);
+    overflow-x: hidden;
+  }
+
+  /* top accent bar */
+  body::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--green) 0%, var(--green-mid) 100%);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 420px;
+    padding-top: calc(env(safe-area-inset-top) + 28px);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green-mid);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-eyebrow::before {
+    content: '';
+    width: 20px; height: 2px;
+    background: var(--green-mid);
+    border-radius: 1px;
+    display: inline-block;
+  }
+
+  .header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1.5px;
+    color: var(--text);
+  }
+
+  .header h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--green);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+  }
+
+  /* ── TIPO DE GASTO ── */
+  .tipo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .tipo-pill {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    transition: all 0.16s;
+    user-select: none;
+  }
+
+  .tipo-pill:active { transform: scale(0.96); }
+
+  .tipo-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tipo-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-mid);
+    font-family: 'Fraunces', serif;
+  }
+
+  .tipo-pill.selected {
+    border-color: var(--sel-color);
+    background: var(--white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--sel-color) 12%, transparent);
+  }
+
+  .tipo-pill.selected .tipo-name { color: var(--sel-color); }
+
+  /* ── IMPORTE ── */
+  .importe-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--green-pale);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 18px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .importe-wrap:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(26,122,60,0.1);
+  }
+
+  .importe-symbol {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+
+  input#importe {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 10px 0;
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+  }
+
+  input#importe::placeholder { color: var(--text-faint); }
+
+  /* ── FECHA — single clickable element ── */
+  .fecha-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.16s;
+    user-select: none;
+    gap: 12px;
+  }
+
+  .fecha-btn:active { transform: scale(0.98); }
+
+  .fecha-btn:hover {
+    border-color: var(--green);
+    background: var(--green-pale);
+  }
+
+  .fecha-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .fecha-icon {
+    width: 36px; height: 36px;
+    background: var(--green-soft);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .fecha-text {}
+  .fecha-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 3px;
+  }
+  .fecha-val {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .fecha-edit {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--green-mid);
+    font-weight: 500;
+    padding: 4px 10px;
+    background: var(--green-soft);
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  /* ── DATE PICKER OVERLAY ── */
+  .dp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14,32,21,0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .dp-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .dp-sheet {
+    background: var(--white);
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 -8px 40px rgba(26,122,60,0.15);
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.34,1.1,0.64,1);
+  }
+
+  .dp-overlay.open .dp-sheet {
+    transform: translateY(0);
+  }
+
+  .dp-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .dp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .dp-month-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .dp-nav {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dp-nav-btn {
+    width: 34px; height: 34px;
+    background: var(--green-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+    font-size: 16px;
+    transition: all 0.14s;
+    font-weight: 600;
+  }
+
+  .dp-nav-btn:active { transform: scale(0.9); background: var(--green); color: #fff; }
+
+  .dp-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 8px;
+  }
+
+  .dp-wd {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-faint);
+    padding: 4px 0;
+    text-transform: uppercase;
+  }
+
+  .dp-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  .dp-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    color: var(--text);
+    font-family: 'Fraunces', serif;
+  }
+
+  .dp-day:active { transform: scale(0.85); }
+  .dp-day.empty  { pointer-events: none; }
+
+  .dp-day.today {
+    background: var(--green-soft);
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .dp-day.selected {
+    background: var(--green);
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(26,122,60,0.35);
+  }
+
+  .dp-day:not(.empty):not(.selected):hover {
+    background: var(--green-pale);
+  }
+
+  /* ── SUBMIT ── */
+  .btn-submit {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: -0.3px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(26,122,60,0.3);
+    margin-bottom: 12px;
+  }
+
+  .btn-submit:hover  { background: #155c2e; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,122,60,0.35); }
+  .btn-submit:active { transform: scale(0.98) translateY(0); }
+  .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s;
+  }
+
+  .btn-submit.loading .btn-inner { opacity: 0; }
+
+  .btn-spinner {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 22px; height: 22px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .btn-submit.loading .btn-spinner { display: block; }
+  @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+  /* ── SUCCESS OVERLAY ── */
+  .success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(244,247,244,0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .success-overlay.show { opacity: 1; pointer-events: all; }
+
+  .success-icon {
+    width: 88px; height: 88px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(26,122,60,0.3);
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    margin-bottom: 4px;
+  }
+
+  @keyframes popIn { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+  .success-amount {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -1px;
+  }
+
+  .success-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* ── HISTORIAL ── */
+  .historial-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-lt);
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .historial-item:last-child { border-bottom: none; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  .h-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .h-info { flex: 1; min-width: 0; }
+  .h-tipo { font-size: 14px; font-weight: 600; color: var(--text); }
+  .h-fecha { font-family:'DM Mono',monospace; font-size:10px; color:var(--text-dim); margin-top:2px; }
+  .h-importe { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; }
+
+  .empty-hist {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #dc2626;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 11px 22px;
+    border-radius: 999px;
+    z-index: 300;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34,1.4,0.64,1);
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(220,38,38,0.35);
+  }
+
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-eyebrow" id="header-date"></div>
+    <h1>Registro de<br><em>gastos</em></h1>
+  </div>
+
+  <!-- TIPO -->
+  <div class="card">
+    <div class="card-label">Tipo de gasto</div>
+    <div class="tipo-grid" id="tipo-grid"></div>
+  </div>
+
+  <!-- IMPORTE -->
+  <div class="card">
+    <div class="card-label">Importe</div>
+    <div class="importe-wrap">
+      <span class="importe-symbol">€</span>
+      <input type="number" id="importe" inputmode="decimal" placeholder="0,00" step="0.01" min="0" />
+    </div>
+  </div>
+
+  <!-- FECHA — single element -->
+  <div class="card" style="padding:16px 20px;">
+    <div class="card-label">Fecha del gasto</div>
+    <div class="fecha-btn" onclick="openDatePicker()" id="fecha-btn">
+      <div class="fecha-left">
+        <div class="fecha-icon">📅</div>
+        <div class="fecha-text">
+          <div class="fecha-label">Fecha seleccionada</div>
+          <div class="fecha-val" id="fecha-display"></div>
+        </div>
+      </div>
+      <div class="fecha-edit">cambiar</div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <button class="btn-submit" id="btn-submit" onclick="enviarGasto()">
+    <div class="btn-inner">Guardar gasto &nbsp;→</div>
+    <div class="btn-spinner"></div>
+  </button>
+
+  <!-- HISTORIAL -->
+  <div class="card">
+    <div class="card-label">Registros de esta sesión</div>
+    <div id="historial-list"><div class="empty-hist">Aún no hay registros</div></div>
+  </div>
+
+</div>
+
+<!-- DATE PICKER -->
+<div class="dp-overlay" id="dp-overlay" onclick="closeDpOutside(event)">
+  <div class="dp-sheet">
+    <div class="dp-handle"></div>
+    <div class="dp-header">
+      <div class="dp-month-name" id="dp-month-name"></div>
+      <div class="dp-nav">
+        <button class="dp-nav-btn" onclick="dpNav(-1)">‹</button>
+        <button class="dp-nav-btn" onclick="dpNav(1)">›</button>
+      </div>
+    </div>
+    <div class="dp-weekdays">
+      <div class="dp-wd">L</div><div class="dp-wd">M</div><div class="dp-wd">X</div>
+      <div class="dp-wd">J</div><div class="dp-wd">V</div><div class="dp-wd">S</div>
+      <div class="dp-wd">D</div>
+    </div>
+    <div class="dp-days" id="dp-days"></div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-icon">✓</div>
+  <div class="success-amount" id="s-amount"></div>
+  <div class="success-detail" id="s-detail"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcJ4kn-g1DhNnNdnQVBR1RfaDweKhMU0j8WCDZ6WS-r13laM_OrLmFSE_kUdt22ksG/exec';
+
+// ── CONFIGURACIÓN DE GASTOS ───────────────────────────────────
+// Para añadir/quitar gastos: modifica este array y el objeto GASTOS del Apps Script
+const GASTOS_CONFIG = [
+  { id: 'Compra',       label: 'Compra',       color: '#16a34a', emoji: '🛒' },
+  { id: 'Gasolina',     label: 'Gasolina',     color: '#d97706', emoji: '⛽' },
+  { id: 'Restaurantes', label: 'Restaurantes', color: '#db2777', emoji: '🍽️' },
+  { id: 'Farmacia',     label: 'Farmacia',     color: '#2563eb', emoji: '💊' },
+];
+
+const MESES    = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MESES_C  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DIAS_SEM = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+// ── ESTADO ───────────────────────────────────────────────────
+let selectedTipo = null;
+let selectedDate = new Date();
+let historial    = [];
+let dpYear, dpMonth;
+
+// ── INIT ─────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  renderTipos();
+  updateHeaderDate();
+  updateFechaDisplay();
+  selectTipo(GASTOS_CONFIG[0].id);
+});
+
+function updateHeaderDate() {
+  const n = new Date();
+  document.getElementById('header-date').textContent =
+    `${DIAS_SEM[n.getDay()]}, ${n.getDate()} ${MESES_C[n.getMonth()]} ${n.getFullYear()}`;
+}
+
+// ── TIPOS ────────────────────────────────────────────────────
+function renderTipos() {
+  const grid = document.getElementById('tipo-grid');
+  grid.innerHTML = GASTOS_CONFIG.map(g => `
+    <div class="tipo-pill" id="pill-${g.id}" onclick="selectTipo('${g.id}')">
+      <div class="tipo-dot" style="background:${g.color}"></div>
+      <span class="tipo-name">${g.emoji} ${g.label}</span>
+    </div>
+  `).join('');
+}
+
+function selectTipo(id) {
+  selectedTipo = id;
+  document.querySelectorAll('.tipo-pill').forEach(p => p.classList.remove('selected'));
+  const pill = document.getElementById('pill-' + id);
+  pill.classList.add('selected');
+  pill.style.setProperty('--sel-color', GASTOS_CONFIG.find(x => x.id === id).color);
+}
+
+// ── FECHA DISPLAY ────────────────────────────────────────────
+function updateFechaDisplay() {
+  const d = selectedDate;
+  const isToday = isSameDay(d, new Date());
+  const dayName = DIAS_SEM[d.getDay()];
+  const text = isToday
+    ? `Hoy · ${d.getDate()} de ${MESES[d.getMonth()]}`
+    : `${dayName.charAt(0).toUpperCase()+dayName.slice(1)}, ${d.getDate()} de ${MESES[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('fecha-display').textContent = text;
+}
+
+function isSameDay(a, b) {
+  return a.getDate()===b.getDate() && a.getMonth()===b.getMonth() && a.getFullYear()===b.getFullYear();
+}
+
+// ── DATE PICKER ──────────────────────────────────────────────
+function openDatePicker() {
+  dpYear  = selectedDate.getFullYear();
+  dpMonth = selectedDate.getMonth();
+  renderCal();
+  document.getElementById('dp-overlay').classList.add('open');
+}
+
+function closeDpOutside(e) {
+  if (e.target === document.getElementById('dp-overlay')) closeDp();
+}
+
+function closeDp() {
+  document.getElementById('dp-overlay').classList.remove('open');
+}
+
+function dpNav(delta) {
+  dpMonth += delta;
+  if (dpMonth < 0)  { dpMonth = 11; dpYear--; }
+  if (dpMonth > 11) { dpMonth = 0;  dpYear++; }
+  renderCal();
+}
+
+function renderCal() {
+  document.getElementById('dp-month-name').textContent = `${MESES[dpMonth]} ${dpYear}`;
+  const container = document.getElementById('dp-days');
+  container.innerHTML = '';
+
+  const firstDay   = new Date(dpYear, dpMonth, 1).getDay();
+  const daysInMonth = new Date(dpYear, dpMonth+1, 0).getDate();
+  const today      = new Date();
+  const offset     = (firstDay + 6) % 7; // Mon=0
+
+  for (let i = 0; i < offset; i++) {
+    container.insertAdjacentHTML('beforeend', '<div class="dp-day empty"></div>');
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d===today.getDate() && dpMonth===today.getMonth() && dpYear===today.getFullYear();
+    const isSel   = d===selectedDate.getDate() && dpMonth===selectedDate.getMonth() && dpYear===selectedDate.getFullYear();
+    const cls     = ['dp-day', isToday?'today':'', isSel?'selected':''].filter(Boolean).join(' ');
+    container.insertAdjacentHTML('beforeend',
+      `<div class="${cls}" onclick="pickDay(${d})">${d}</div>`);
+  }
+}
+
+function pickDay(day) {
+  selectedDate = new Date(dpYear, dpMonth, day);
+  updateFechaDisplay();
+  closeDp();
+}
+
+// ── ENVIAR ───────────────────────────────────────────────────
+async function enviarGasto() {
+  const importe = parseFloat(document.getElementById('importe').value);
+  if (!selectedTipo)           { showToast('Selecciona un tipo de gasto'); return; }
+  if (!importe || importe <= 0){ showToast('Introduce un importe válido'); return; }
+
+  const mes  = MESES[selectedDate.getMonth()];
+  const dia  = selectedDate.getDate();
+  const g    = GASTOS_CONFIG.find(x => x.id === selectedTipo);
+  const btn  = document.getElementById('btn-submit');
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const url = `${APPS_SCRIPT_URL}?mes=${encodeURIComponent(mes)}&gasto=${encodeURIComponent(selectedTipo)}&dia=${dia}&valor=${importe}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error desconocido');
+
+    // Historial
+    historial.unshift({ tipo:g.label, emoji:g.emoji, color:g.color, importe, mes, dia });
+    renderHistorial();
+
+    // Success
+    document.getElementById('s-amount').textContent =
+      `+${importe.toLocaleString('es-ES',{minimumFractionDigits:2})} €`;
+    document.getElementById('s-detail').textContent =
+      `${g.emoji} ${g.label} · ${dia} de ${mes}`;
+    document.getElementById('success-overlay').classList.add('show');
+    setTimeout(() => document.getElementById('success-overlay').classList.remove('show'), 1800);
+
+    // Reset importe, keep date and tipo
+    document.getElementById('importe').value = '';
+
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// ── HISTORIAL ────────────────────────────────────────────────
+function renderHistorial() {
+  const list = document.getElementById('historial-list');
+  if (!historial.length) {
+    list.innerHTML = '<div class="empty-hist">Aún no hay registros</div>';
+    return;
+  }
+  list.innerHTML = historial.slice(0,8).map((h,i) => `
+    <div class="historial-item" style="animation-delay:${i*0.04}s">
+      <div class="h-dot" style="background:${h.color}"></div>
+      <div class="h-info">
+        <div class="h-tipo">${h.emoji} ${h.tipo}</div>
+        <div class="h-fecha">${h.dia} de ${h.mes}</div>
+      </div>
+      <div class="h-importe" style="color:${h.color}">
+        ${h.importe.toLocaleString('es-ES',{minimumFractionDigits:2})} €
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
