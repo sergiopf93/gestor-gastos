@@ -1414,33 +1414,42 @@ function generarReporte() {
 }
 
 function generarNuevoAnio() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const anoAct = new Date().getFullYear();
+  const ss       = SpreadsheetApp.getActiveSpreadsheet();
+  const anoAct   = new Date().getFullYear();
   const anoNuevo = anoAct + 1;
-  const nombre = 'Presupuesto ' + anoNuevo;
-  const file = DriveApp.getFileById(ss.getId());
-  const copia = file.makeCopy(nombre, file.getParents().next());
-  const ssNuevo = SpreadsheetApp.openById(copia.getId());
+  const nombre   = 'Presupuesto ' + anoNuevo;
+  const file     = DriveApp.getFileById(ss.getId());
+  const copia    = file.makeCopy(nombre, file.getParents().next());
+  const ssNuevo  = SpreadsheetApp.openById(copia.getId());
+
   MESES.forEach(mes => {
     const sheet = ssNuevo.getSheetByName(mes);
     if (!sheet) return;
-    for (let fila = 4; fila <= 61; fila++) {
-      for (let col = 4; col <= 34; col++) {
-        const celda = sheet.getRange(fila, col);
-        const formula = celda.getFormula();
-        const valor = celda.getValue();
-        if (!formula && valor !== '' && valor !== null) {
-          celda.clearContent();
-        } else if (formula && formula.startsWith('=') && !formula.match(/[A-Za-z]/)) {
-          celda.clearContent();
-        }
-      }
-    }
+
+    // Leer todo el rango de golpe (filas 4-61, cols 4-34)
+    const numFilas = 58, numCols = 31;
+    const range    = sheet.getRange(4, 4, numFilas, numCols);
+    const valores  = range.getValues();
+    const formulas = range.getFormulas();
+
+    // Construir nueva matriz: vaciar valores simples y fórmulas numéricas, mantener fórmulas con referencias
+    const nuevos = valores.map((fila, ri) =>
+      fila.map((val, ci) => {
+        const f = formulas[ri][ci];
+        if (f && f.startsWith('=') && f.match(/[A-Za-z]/)) return val; // fórmula con ref → mantener
+        return ''; // valor o fórmula numérica → vaciar
+      })
+    );
+
+    // Escribir todo de una vez
+    range.setValues(nuevos);
   });
+
   const segViejo = ssNuevo.getSheetByName('Seguimiento ' + anoAct);
   if (segViejo) segViejo.setName('Seguimiento ' + anoNuevo);
-  const rep = ssNuevo.getSheetByName('Reporte ' + anoAct);
-  if (rep) ssNuevo.deleteSheet(rep);
+  const repViejo = ssNuevo.getSheetByName('Reporte ' + anoAct);
+  if (repViejo) ssNuevo.deleteSheet(repViejo);
+
   return resp({ ok: true, nombre, url: 'https://docs.google.com/spreadsheets/d/' + copia.getId() });
 }
 
