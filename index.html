@@ -801,8 +801,13 @@
 
   <!-- HEADER -->
   <div class="header">
-    <div class="header-eyebrow" id="header-date"></div>
-    <h1>Registro de<br><em>gastos</em></h1>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+      <div>
+        <div class="header-eyebrow" id="header-date"></div>
+        <h1>Registro de<br><em>gastos</em></h1>
+      </div>
+      <button onclick="abrirConfig()" style="background:var(--white);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;margin-top:8px;box-shadow:var(--shadow);transition:all 0.15s;" title="Configuración">⚙️</button>
+    </div>
   </div>
 
   <!-- TIPO -->
@@ -890,11 +895,78 @@
 
 <!-- NUEVO AÑO OVERLAY -->
 <div class="nuevo-ano-overlay" id="nuevo-ano-overlay">
-  <div class="nuevo-ano-icon">🗓️</div>
-  <div class="nuevo-ano-title" id="nuevo-ano-title">¡Listo para el nuevo año!</div>
-  <div class="nuevo-ano-sub" id="nuevo-ano-sub"></div>
-  <a class="nuevo-ano-link" id="nuevo-ano-link" href="#" target="_blank">Abrir en Google Sheets →</a>
-  <button class="nuevo-ano-cerrar" onclick="document.getElementById('nuevo-ano-overlay').classList.remove('show')">Cerrar</button>
+  <div style="width:100%;max-width:420px;overflow-y:auto;max-height:90vh;padding:8px;">
+
+    <div style="text-align:center;margin-bottom:20px;">
+      <div class="nuevo-ano-icon" style="margin:0 auto 12px;">🗓️</div>
+      <div class="nuevo-ano-title" id="nuevo-ano-title">¡Excel generado!</div>
+      <div class="nuevo-ano-sub" id="nuevo-ano-sub"></div>
+    </div>
+
+    <!-- Enlace al nuevo Excel -->
+    <a class="nuevo-ano-link" id="nuevo-ano-link" href="#" target="_blank" style="display:block;text-align:center;margin-bottom:20px;">
+      Abrir nuevo Excel en Google Sheets →
+    </a>
+
+    <!-- Pasos -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--green-mid);margin-bottom:14px;">Pasos para activar la web con el nuevo Excel</div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:24px;height:24px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">1</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">Abre el nuevo Excel (botón de arriba) → menú <strong>Extensiones → Apps Script</strong></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:24px;height:24px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">2</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">Borra todo el código existente y pega el código de abajo</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:24px;height:24px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">3</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;"><strong>Implementar → Nueva implementación → Aplicación web → Cualquier persona → Implementar</strong></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:24px;height:24px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">4</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">Copia la URL que te da y pégala en esta web: toca el <strong>⚙️</strong> arriba a la derecha → pega la URL → Guardar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Código del Apps Script -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--green-mid);">Código Apps Script</div>
+        <button onclick="copiarCodigo()" id="btn-copiar-codigo" style="background:var(--green-soft);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;transition:all 0.15s;">Copiar</button>
+      </div>
+      <pre id="codigo-script" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-mid);line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow-y:auto;background:var(--bg);border-radius:6px;padding:10px;"></pre>
+    </div>
+
+    <button class="nuevo-ano-cerrar" onclick="document.getElementById('nuevo-ano-overlay').classList.remove('show')">Cerrar</button>
+  </div>
+</div>
+
+<!-- CONFIG OVERLAY -->
+<div class="dp-overlay" id="config-overlay" onclick="cerrarConfigOutside(event)">
+  <div class="dp-sheet">
+    <div class="dp-handle"></div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:16px;">Configuración</div>
+
+    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;">URL del Apps Script</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:12px;line-height:1.5;">
+      Pega aquí la URL del Apps Script del nuevo Excel cuando cambies de año. La encontrarás en Implementar → Administrar implementaciones.
+    </div>
+
+    <textarea id="config-url-input"
+      style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);outline:none;resize:none;height:80px;transition:border-color 0.2s;line-height:1.5;"
+      placeholder="https://script.google.com/macros/s/..."></textarea>
+
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button onclick="guardarConfig()" style="flex:1;background:var(--green);color:#fff;font-family:'Fraunces',serif;font-size:14px;font-weight:700;border:none;border-radius:var(--radius-sm);padding:13px;cursor:pointer;">Guardar</button>
+      <button onclick="resetConfig()" style="background:var(--bg);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 16px;cursor:pointer;">Resetear</button>
+    </div>
+
+    <div id="config-status" style="font-family:'DM Mono',monospace;font-size:11px;text-align:center;margin-top:10px;min-height:16px;"></div>
+  </div>
 </div>
 
 <!-- DATE PICKER -->
@@ -928,7 +1000,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcJ4kn-g1DhNnNdnQVBR1RfaDweKhMU0j8WCDZ6WS-r13laM_OrLmFSE_kUdt22ksG/exec';
+const URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwcJ4kn-g1DhNnNdnQVBR1RfaDweKhMU0j8WCDZ6WS-r13laM_OrLmFSE_kUdt22ksG/exec';
+
+// URL dinámica — se lee de localStorage, si no hay se usa la de por defecto
+function getURL() {
+  return localStorage.getItem('gastos_script_url') || URL_DEFAULT;
+}
 
 // ── CONFIGURACIÓN DE GASTOS ───────────────────────────────────
 // Para añadir/quitar gastos: modifica este array y el objeto GASTOS del Apps Script
@@ -1064,7 +1141,7 @@ async function enviarGasto() {
   btn.disabled = true;
 
   try {
-    const url = `${APPS_SCRIPT_URL}?mes=${encodeURIComponent(mes)}&gasto=${encodeURIComponent(selectedTipo)}&dia=${dia}&valor=${importe}`;
+    const url = `${getURL()}?mes=${encodeURIComponent(mes)}&gasto=${encodeURIComponent(selectedTipo)}&dia=${dia}&valor=${importe}`;
     const res  = await fetch(url);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Error desconocido');
@@ -1127,7 +1204,7 @@ async function lanzarReporte() {
   const btn = document.getElementById('btn-reporte');
   btn.classList.add('loading'); btn.disabled = true;
   try {
-    const res  = await fetch(`${APPS_SCRIPT_URL}?accion=reporte`);
+    const res  = await fetch(`${getURL()}?accion=reporte`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Error desconocido');
     renderReporte(data.desviaciones);
@@ -1203,25 +1280,200 @@ function cerrarReporte() {
   document.getElementById('reporte-overlay').classList.remove('open');
 }
 
+// ── CONFIGURACIÓN URL ─────────────────────────────────────────
+function abrirConfig() {
+  const saved = localStorage.getItem('gastos_script_url') || '';
+  document.getElementById('config-url-input').value = saved;
+  document.getElementById('config-status').textContent = '';
+  document.getElementById('config-overlay').classList.add('open');
+}
+
+function cerrarConfigOutside(e) {
+  if (e.target === document.getElementById('config-overlay'))
+    document.getElementById('config-overlay').classList.remove('open');
+}
+
+function guardarConfig() {
+  const url = document.getElementById('config-url-input').value.trim();
+  if (!url.includes('script.google.com')) {
+    document.getElementById('config-status').style.color = '#dc2626';
+    document.getElementById('config-status').textContent = 'URL no válida — debe ser de script.google.com';
+    return;
+  }
+  localStorage.setItem('gastos_script_url', url);
+  document.getElementById('config-status').style.color = '#16a34a';
+  document.getElementById('config-status').textContent = '✓ URL guardada correctamente';
+  setTimeout(() => document.getElementById('config-overlay').classList.remove('open'), 1200);
+}
+
+function resetConfig() {
+  localStorage.removeItem('gastos_script_url');
+  document.getElementById('config-url-input').value = '';
+  document.getElementById('config-status').style.color = '#d97706';
+  document.getElementById('config-status').textContent = 'URL reseteada a la de por defecto';
+}
 // ── NUEVO AÑO ─────────────────────────────────────────────────
+const APPS_SCRIPT_CODE = `const GASTOS = {
+  'Compra':       16,
+  'Gasolina':     26,
+  'Restaurantes': 41,
+  'Farmacia':     33,
+};
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
+               'Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function doGet(e) {
+  const accion = e.parameter.accion;
+  if (accion === 'reporte')   return generarReporte();
+  if (accion === 'nuevo_año') return generarNuevoAño();
+
+  const mes   = e.parameter.mes;
+  const gasto = e.parameter.gasto;
+  const dia   = parseInt(e.parameter.dia);
+  const valor = parseFloat(e.parameter.valor);
+
+  if (mes && gasto && dia && !isNaN(valor)) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(mes);
+    if (!sheet) return resp({ ok: false, error: 'Pestaña no encontrada: ' + mes });
+    const fila = GASTOS[gasto];
+    if (!fila)  return resp({ ok: false, error: 'Gasto no encontrado: ' + gasto });
+    const col      = dia + 3;
+    const celda    = sheet.getRange(fila, col);
+    const actual   = celda.getValue();
+    const formula  = celda.getFormula();
+    const valorStr = valor.toString().replace('.', ',');
+    if (!actual && actual !== 0) {
+      celda.setValue(valor);
+    } else {
+      let base = (formula && formula.startsWith('='))
+        ? formula.slice(1)
+        : actual.toString().replace('.', ',');
+      celda.setFormula('=' + base + '+' + valorStr);
+    }
+  }
+  return resp({ ok: true });
+}
+
+function generarReporte() {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const seg = ss.getSheetByName('Seguimiento ' + new Date().getFullYear());
+  if (!seg) return resp({ ok: false, error: 'No se encontró la pestaña de seguimiento' });
+  const verde = '#c6efce', rojo = '#ffc7ce';
+  const verdeT = '#276221', rojoT = '#9c0006';
+  const desviaciones = [];
+  for (let i = 0; i < 58; i++) {
+    const fila = i + 4;
+    const categoria = seg.getRange(fila, 2).getValue();
+    const grupo     = seg.getRange(fila, 1).getValue();
+    const presup    = seg.getRange(fila, 3).getValue();
+    const totalReal = seg.getRange(fila, 16).getValue();
+    if (!categoria || presup === '' || presup === 0) continue;
+    const presupAnual = presup * 12;
+    const diferencia  = presupAnual - totalReal;
+    const pct = presupAnual > 0 ? ((diferencia / presupAnual) * 100) : 0;
+    const rangeColor = seg.getRange(fila, 1, 1, 16);
+    if (diferencia < 0) {
+      rangeColor.setBackground(rojo).setFontColor(rojoT);
+    } else if (diferencia > 0 && totalReal > 0) {
+      rangeColor.setBackground(verde).setFontColor(verdeT);
+    } else {
+      rangeColor.setBackground(null).setFontColor(null);
+    }
+    if (Math.abs(diferencia) > 0.01 && totalReal > 0) {
+      desviaciones.push({
+        grupo: grupo || '', categoria,
+        presupAnual: Math.round(presupAnual * 100) / 100,
+        real: Math.round(totalReal * 100) / 100,
+        diferencia: Math.round(diferencia * 100) / 100,
+        pct: Math.round(pct * 10) / 10,
+        ok: diferencia >= 0
+      });
+    }
+  }
+  const nombreRep = 'Reporte ' + new Date().getFullYear();
+  let rep = ss.getSheetByName(nombreRep);
+  if (rep) ss.deleteSheet(rep);
+  rep = ss.insertSheet(nombreRep);
+  rep.getRange(1,1,1,6).setValues([['Categoría','Grupo','Presup. Anual','Gasto Real','Diferencia','% Desv.']]);
+  rep.getRange(1,1,1,6).setFontWeight('bold').setBackground('#1a7a3c').setFontColor('#ffffff');
+  desviaciones.forEach((d, i) => {
+    const f = i + 2;
+    rep.getRange(f,1,1,6).setValues([[d.categoria,d.grupo,d.presupAnual,d.real,d.diferencia,d.pct+'%']]);
+    rep.getRange(f,1,1,6).setBackground(d.ok ? verde : rojo).setFontColor(d.ok ? verdeT : rojoT);
+  });
+  rep.autoResizeColumns(1, 6);
+  return resp({ ok: true, desviaciones });
+}
+
+function generarNuevoAño() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const anoAct = new Date().getFullYear();
+  const anoNuevo = anoAct + 1;
+  const nombre = 'Presupuesto ' + anoNuevo;
+  const file = DriveApp.getFileById(ss.getId());
+  const copia = file.makeCopy(nombre, file.getParents().next());
+  const ssNuevo = SpreadsheetApp.openById(copia.getId());
+  MESES.forEach(mes => {
+    const sheet = ssNuevo.getSheetByName(mes);
+    if (!sheet) return;
+    for (let fila = 4; fila <= 61; fila++) {
+      for (let col = 4; col <= 34; col++) {
+        const celda = sheet.getRange(fila, col);
+        const formula = celda.getFormula();
+        const valor = celda.getValue();
+        if (!formula && valor !== '' && valor !== null) {
+          celda.clearContent();
+        } else if (formula && formula.startsWith('=') && !formula.match(/[A-Za-z]/)) {
+          celda.clearContent();
+        }
+      }
+    }
+  });
+  const segViejo = ssNuevo.getSheetByName('Seguimiento ' + anoAct);
+  if (segViejo) segViejo.setName('Seguimiento ' + anoNuevo);
+  const rep = ssNuevo.getSheetByName('Reporte ' + anoAct);
+  if (rep) ssNuevo.deleteSheet(rep);
+  return resp({ ok: true, nombre, url: 'https://docs.google.com/spreadsheets/d/' + copia.getId() });
+}
+
+function resp(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}`;
+
 async function lanzarNuevoAno() {
   const btn = document.getElementById('btn-nuevo');
   btn.classList.add('loading'); btn.disabled = true;
   try {
-    const res  = await fetch(`${APPS_SCRIPT_URL}?accion=nuevo_año`);
+    const res  = await fetch(`${getURL()}?accion=nuevo_año`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Error desconocido');
     const año = new Date().getFullYear() + 1;
     document.getElementById('nuevo-ano-title').textContent = `¡${data.nombre} listo!`;
     document.getElementById('nuevo-ano-sub').textContent =
-      `El Excel del ${año} está en tu Google Drive con todos\nlos gastos diarios limpiados y listo para usar.`;
+      `El Excel del ${año} está en tu Google Drive listo para usar.`;
     document.getElementById('nuevo-ano-link').href = data.url;
+    document.getElementById('codigo-script').textContent = APPS_SCRIPT_CODE;
     document.getElementById('nuevo-ano-overlay').classList.add('show');
   } catch(e) {
     showToast('Error: ' + e.message);
   } finally {
     btn.classList.remove('loading'); btn.disabled = false;
   }
+}
+
+function copiarCodigo() {
+  navigator.clipboard.writeText(APPS_SCRIPT_CODE).then(() => {
+    const btn = document.getElementById('btn-copiar-codigo');
+    btn.textContent = '¡Copiado ✓';
+    btn.style.background = '#dcfce7';
+    btn.style.color = '#16a34a';
+    setTimeout(() => {
+      btn.textContent = 'Copiar';
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 2000);
+  });
 }
 </script>
 </body>
