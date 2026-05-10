@@ -1341,7 +1341,7 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
 function doGet(e) {
   const accion = e.parameter.accion;
   if (accion === 'reporte')   return generarReporte();
-  if (accion === 'nuevo_año') return generarNuevoAño();
+  if (accion === 'nuevo_anio') return generarNuevoAnio();
 
   const mes   = e.parameter.mes;
   const gasto = e.parameter.gasto;
@@ -1413,7 +1413,7 @@ function generarReporte() {
   return resp({ ok: true, desviaciones });
 }
 
-function generarNuevoAño() {
+function generarNuevoAnio() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const anoAct = new Date().getFullYear();
   const anoNuevo = anoAct + 1;
@@ -1455,7 +1455,7 @@ async function lanzarNuevoAno() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
-    const res = await fetch(`${getURL()}?accion=nuevo_a%C3%B1o`, {
+    const res = await fetch(`${getURL()}?accion=nuevo_anio`, {
       signal: controller.signal,
       redirect: 'follow'
     });
