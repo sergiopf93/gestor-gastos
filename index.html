@@ -1204,13 +1204,28 @@ async function lanzarReporte() {
   const btn = document.getElementById('btn-reporte');
   btn.classList.add('loading'); btn.disabled = true;
   try {
-    const res  = await fetch(`${getURL()}?accion=reporte`);
-    const data = await res.json();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+
+    const res = await fetch(`${getURL()}?accion=reporte`, {
+      signal: controller.signal,
+      redirect: 'follow'
+    });
+    clearTimeout(timeout);
+
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Respuesta inesperada del servidor'); }
+
     if (!data.ok) throw new Error(data.error || 'Error desconocido');
     renderReporte(data.desviaciones);
     document.getElementById('reporte-overlay').classList.add('open');
   } catch(e) {
-    showToast('Error: ' + e.message);
+    if (e.name === 'AbortError') {
+      showToast('Tardó demasiado — inténtalo de nuevo');
+    } else {
+      showToast('Error: ' + e.message);
+    }
   } finally {
     btn.classList.remove('loading'); btn.disabled = false;
   }
@@ -1437,9 +1452,21 @@ async function lanzarNuevoAno() {
   const btn = document.getElementById('btn-nuevo');
   btn.classList.add('loading'); btn.disabled = true;
   try {
-    const res  = await fetch(`${getURL()}?accion=nuevo_año`);
-    const data = await res.json();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+    const res = await fetch(`${getURL()}?accion=nuevo_a%C3%B1o`, {
+      signal: controller.signal,
+      redirect: 'follow'
+    });
+    clearTimeout(timeout);
+
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Respuesta inesperada del servidor'); }
+
     if (!data.ok) throw new Error(data.error || 'Error desconocido');
+
     const año = new Date().getFullYear() + 1;
     document.getElementById('nuevo-ano-title').textContent = `¡${data.nombre} listo!`;
     document.getElementById('nuevo-ano-sub').textContent =
@@ -1448,7 +1475,11 @@ async function lanzarNuevoAno() {
     document.getElementById('codigo-script').textContent = APPS_SCRIPT_CODE;
     document.getElementById('nuevo-ano-overlay').classList.add('show');
   } catch(e) {
-    showToast('Error: ' + e.message);
+    if (e.name === 'AbortError') {
+      showToast('Tardó demasiado — revisa tu Google Drive, puede que se haya creado igualmente');
+    } else {
+      showToast('Error: ' + e.message);
+    }
   } finally {
     btn.classList.remove('loading'); btn.disabled = false;
   }
