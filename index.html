@@ -1372,14 +1372,6 @@ function generarReporte() {
     const presupAnual = presup * 12;
     const diferencia  = presupAnual - totalReal;
     const pct = presupAnual > 0 ? ((diferencia / presupAnual) * 100) : 0;
-    const rangeColor = seg.getRange(fila, 1, 1, 16);
-    if (diferencia < 0) {
-      rangeColor.setBackground(rojo).setFontColor(rojoT);
-    } else if (diferencia > 0 && totalReal > 0) {
-      rangeColor.setBackground(verde).setFontColor(verdeT);
-    } else {
-      rangeColor.setBackground(null).setFontColor(null);
-    }
     if (Math.abs(diferencia) > 0.01 && totalReal > 0) {
       desviaciones.push({
         grupo: grupo || '', categoria,
