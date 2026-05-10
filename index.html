@@ -566,6 +566,234 @@
   }
 
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ── ACCIONES ANUALES ── */
+  .acciones-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    text-align: center;
+    margin: 28px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .acciones-title::before, .acciones-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .btn-anual {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    background: var(--white);
+    box-shadow: var(--shadow);
+    text-align: left;
+  }
+
+  .btn-anual:active { transform: scale(0.98); }
+
+  .btn-anual-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .btn-anual.reporte .btn-anual-icon { background: #ecfdf5; }
+  .btn-anual.nuevo   .btn-anual-icon { background: #eff6ff; }
+  .btn-anual.reporte:hover { border-color: var(--green); background: var(--green-pale); }
+  .btn-anual.nuevo:hover   { border-color: #3b82f6; background: #eff6ff; }
+
+  .btn-anual-text {}
+  .btn-anual-label { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .btn-anual-desc  { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); }
+
+  .btn-anual-arrow { margin-left: auto; color: var(--text-faint); font-size: 18px; }
+
+  .btn-anual.loading .btn-anual-arrow { display: none; }
+  .btn-anual-spin {
+    margin-left: auto;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-anual.loading .btn-anual-spin { display: block; }
+
+  /* ── REPORTE OVERLAY ── */
+  .reporte-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.34,1.1,0.64,1);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 40px);
+  }
+
+  .reporte-overlay.open { transform: translateY(0); }
+
+  .reporte-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: calc(env(safe-area-inset-top) + 20px) 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .reporte-back {
+    width: 36px; height: 36px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .reporte-back:active { transform: scale(0.9); }
+
+  .reporte-header-text {}
+  .reporte-header-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .reporte-header-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .reporte-body { padding: 20px 16px; }
+
+  .reporte-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .summary-chip {
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    border: 1.5px solid;
+  }
+
+  .summary-chip.verde { background: #f0fdf4; border-color: #bbf7d0; }
+  .summary-chip.rojo  { background: #fef2f2; border-color: #fecaca; }
+
+  .summary-chip-num  { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .summary-chip.verde .summary-chip-num { color: #16a34a; }
+  .summary-chip.rojo  .summary-chip-num { color: #dc2626; }
+  .summary-chip-label { font-family: 'DM Mono', monospace; font-size: 10px; margin-top: 4px; }
+  .summary-chip.verde .summary-chip-label { color: #166534; }
+  .summary-chip.rojo  .summary-chip-label { color: #991b1b; }
+
+  .reporte-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .reporte-section-title.rojo  { color: #dc2626; }
+  .reporte-section-title.verde { color: #16a34a; }
+  .reporte-section-title::after { content: ''; flex: 1; height: 1px; }
+  .reporte-section-title.rojo::after  { background: #fecaca; }
+  .reporte-section-title.verde::after { background: #bbf7d0; }
+
+  .desv-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .desv-item.malo  { border-left: 3px solid #dc2626; }
+  .desv-item.bien  { border-left: 3px solid #16a34a; }
+
+  .desv-info { flex: 1; min-width: 0; }
+  .desv-cat  { font-size: 14px; font-weight: 600; color: var(--text); }
+  .desv-grupo { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .desv-nums { text-align: right; flex-shrink: 0; }
+  .desv-dif {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .desv-item.malo  .desv-dif { color: #dc2626; }
+  .desv-item.bien  .desv-dif { color: #16a34a; }
+  .desv-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Nuevo año success */
+  .nuevo-ano-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(244,247,244,0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 300;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px; padding: 32px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .nuevo-ano-overlay.show { opacity: 1; pointer-events: all; }
+  .nuevo-ano-icon {
+    width: 80px; height: 80px;
+    background: #3b82f6;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    box-shadow: 0 8px 32px rgba(59,130,246,0.3);
+  }
+  .nuevo-ano-title { font-size: 24px; font-weight: 800; color: var(--text); text-align: center; letter-spacing: -0.5px; }
+  .nuevo-ano-sub   { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.6; }
+  .nuevo-ano-link  {
+    background: #3b82f6; color: #fff;
+    font-family: 'Fraunces', serif;
+    font-size: 15px; font-weight: 700;
+    padding: 14px 28px; border-radius: var(--radius-sm);
+    text-decoration: none; border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+    transition: all 0.18s;
+    margin-top: 8px;
+  }
+  .nuevo-ano-link:active { transform: scale(0.97); }
+  .nuevo-ano-cerrar {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--text-dim); background: none; border: none;
+    cursor: pointer; text-decoration: underline; margin-top: 4px;
+  }
 </style>
 </head>
 <body>
@@ -619,6 +847,54 @@
     <div id="historial-list"><div class="empty-hist">Aún no hay registros</div></div>
   </div>
 
+  <!-- ACCIONES ANUALES -->
+  <div class="acciones-title">Herramientas anuales</div>
+
+  <button class="btn-anual reporte" id="btn-reporte" onclick="lanzarReporte()">
+    <div class="btn-anual-icon">📊</div>
+    <div class="btn-anual-text">
+      <div class="btn-anual-label">Análisis de seguimiento</div>
+      <div class="btn-anual-desc">Compara presupuesto vs gasto real</div>
+    </div>
+    <div class="btn-anual-arrow">›</div>
+    <div class="btn-anual-spin"></div>
+  </button>
+
+  <button class="btn-anual nuevo" id="btn-nuevo" onclick="lanzarNuevoAno()">
+    <div class="btn-anual-icon">🗓️</div>
+    <div class="btn-anual-text">
+      <div class="btn-anual-label">Generar año siguiente</div>
+      <div class="btn-anual-desc">Copia el Excel limpiando gastos</div>
+    </div>
+    <div class="btn-anual-arrow">›</div>
+    <div class="btn-anual-spin"></div>
+  </button>
+
+</div>
+
+<!-- REPORTE OVERLAY -->
+<div class="reporte-overlay" id="reporte-overlay">
+  <div class="reporte-header">
+    <div class="reporte-back" onclick="cerrarReporte()">‹</div>
+    <div class="reporte-header-text">
+      <div class="reporte-header-title">Seguimiento anual</div>
+      <div class="reporte-header-sub" id="reporte-sub">—</div>
+    </div>
+  </div>
+  <div class="reporte-body">
+    <div class="reporte-summary" id="reporte-summary"></div>
+    <div id="reporte-malos"></div>
+    <div id="reporte-buenos" style="margin-top:20px;"></div>
+  </div>
+</div>
+
+<!-- NUEVO AÑO OVERLAY -->
+<div class="nuevo-ano-overlay" id="nuevo-ano-overlay">
+  <div class="nuevo-ano-icon">🗓️</div>
+  <div class="nuevo-ano-title" id="nuevo-ano-title">¡Listo para el nuevo año!</div>
+  <div class="nuevo-ano-sub" id="nuevo-ano-sub"></div>
+  <a class="nuevo-ano-link" id="nuevo-ano-link" href="#" target="_blank">Abrir en Google Sheets →</a>
+  <button class="nuevo-ano-cerrar" onclick="document.getElementById('nuevo-ano-overlay').classList.remove('show')">Cerrar</button>
 </div>
 
 <!-- DATE PICKER -->
@@ -844,6 +1120,108 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(t._t);
   t._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── REPORTE ──────────────────────────────────────────────────
+async function lanzarReporte() {
+  const btn = document.getElementById('btn-reporte');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    const res  = await fetch(`${APPS_SCRIPT_URL}?accion=reporte`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error desconocido');
+    renderReporte(data.desviaciones);
+    document.getElementById('reporte-overlay').classList.add('open');
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+function renderReporte(desv) {
+  const malos  = desv.filter(d => !d.ok);
+  const buenos = desv.filter(d =>  d.ok);
+  const año    = new Date().getFullYear();
+
+  document.getElementById('reporte-sub').textContent =
+    `${año} · ${desv.length} categorías con desviación`;
+
+  // Summary chips
+  document.getElementById('reporte-summary').innerHTML = `
+    <div class="summary-chip rojo">
+      <div class="summary-chip-num">${malos.length}</div>
+      <div class="summary-chip-label">Por encima del presupuesto</div>
+    </div>
+    <div class="summary-chip verde">
+      <div class="summary-chip-num">${buenos.length}</div>
+      <div class="summary-chip-label">Con margen disponible</div>
+    </div>
+  `;
+
+  const fmtEur = n => (n < 0 ? '' : '+') + n.toLocaleString('es-ES',{minimumFractionDigits:2}) + ' €';
+
+  // Malos (sobre presupuesto)
+  const malosHtml = malos.length ? `
+    <div class="reporte-section-title rojo">⚠ Sobre presupuesto (${malos.length})</div>
+    ${malos.sort((a,b) => a.diferencia - b.diferencia).map((d,i) => `
+      <div class="desv-item malo" style="animation-delay:${i*0.04}s">
+        <div class="desv-info">
+          <div class="desv-cat">${d.categoria}</div>
+          <div class="desv-grupo">${d.grupo || '—'} · Presup. ${d.presupAnual.toLocaleString('es-ES',{minimumFractionDigits:2})} €/año</div>
+        </div>
+        <div class="desv-nums">
+          <div class="desv-dif">${fmtEur(d.diferencia)}</div>
+          <div class="desv-pct">${Math.abs(d.pct)}% desviación</div>
+        </div>
+      </div>
+    `).join('')}
+  ` : '';
+
+  // Buenos (con margen)
+  const buenosHtml = buenos.length ? `
+    <div class="reporte-section-title verde">✓ Con margen (${buenos.length})</div>
+    ${buenos.sort((a,b) => b.diferencia - a.diferencia).map((d,i) => `
+      <div class="desv-item bien" style="animation-delay:${i*0.04}s">
+        <div class="desv-info">
+          <div class="desv-cat">${d.categoria}</div>
+          <div class="desv-grupo">${d.grupo || '—'} · Presup. ${d.presupAnual.toLocaleString('es-ES',{minimumFractionDigits:2})} €/año</div>
+        </div>
+        <div class="desv-nums">
+          <div class="desv-dif">${fmtEur(d.diferencia)}</div>
+          <div class="desv-pct">${d.pct}% sobrante</div>
+        </div>
+      </div>
+    `).join('')}
+  ` : '';
+
+  document.getElementById('reporte-malos').innerHTML  = malosHtml;
+  document.getElementById('reporte-buenos').innerHTML = buenosHtml;
+}
+
+function cerrarReporte() {
+  document.getElementById('reporte-overlay').classList.remove('open');
+}
+
+// ── NUEVO AÑO ─────────────────────────────────────────────────
+async function lanzarNuevoAno() {
+  const btn = document.getElementById('btn-nuevo');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    const res  = await fetch(`${APPS_SCRIPT_URL}?accion=nuevo_año`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error desconocido');
+    const año = new Date().getFullYear() + 1;
+    document.getElementById('nuevo-ano-title').textContent = `¡${data.nombre} listo!`;
+    document.getElementById('nuevo-ano-sub').textContent =
+      `El Excel del ${año} está en tu Google Drive con todos\nlos gastos diarios limpiados y listo para usar.`;
+    document.getElementById('nuevo-ano-link').href = data.url;
+    document.getElementById('nuevo-ano-overlay').classList.add('show');
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
 }
 </script>
 </body>
