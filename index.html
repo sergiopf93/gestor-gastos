@@ -1025,6 +1025,8 @@ let selectedTipo = null;
 let selectedDate = new Date();
 let historial    = [];
 let dpYear, dpMonth;
+let enviandoGasto = false;
+const destinosVerificados = new Set();
 
 // ── INIT ─────────────────────────────────────────────────────
 window.addEventListener('load', () => {
@@ -1128,23 +1130,47 @@ function pickDay(day) {
 
 // ── ENVIAR ───────────────────────────────────────────────────
 async function enviarGasto() {
-  const importe = parseFloat(document.getElementById('importe').value.replace(',','.'));
+  if (enviandoGasto) return;
+  const entrada = document.getElementById('importe').value.trim().replace(',', '.');
+  const importe = Number(entrada);
   if (!selectedTipo)           { showToast('Selecciona un tipo de gasto'); return; }
-  if (!importe || importe <= 0){ showToast('Introduce un importe válido'); return; }
+  if (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(entrada) || !Number.isFinite(importe) || importe <= 0 || !Number.isSafeInteger(Math.round(importe * 100))) {
+    showToast('Introduce un importe válido con un máximo de dos decimales'); return;
+  }
 
+  const destino = getURL();
+  const tipo = selectedTipo;
   const mes  = MESES[selectedDate.getMonth()];
   const dia  = selectedDate.getDate();
-  const g    = GASTOS_CONFIG.find(x => x.id === selectedTipo);
+  const g    = GASTOS_CONFIG.find(x => x.id === tipo);
   const btn  = document.getElementById('btn-submit');
+  const clave = 'gastos_envio_pendiente:' + JSON.stringify([destino, tipo, selectedDate.getFullYear(), mes, dia, importe]);
+  const controller = new AbortController();
+  let timeout;
 
+  enviandoGasto = true;
   btn.classList.add('loading');
   btn.disabled = true;
 
   try {
-    const url = `${getURL()}?mes=${encodeURIComponent(mes)}&gasto=${encodeURIComponent(selectedTipo)}&dia=${dia}&valor=${importe}`;
-    const res  = await fetch(url);
+    timeout = setTimeout(() => controller.abort(), 45000);
+    if (!destinosVerificados.has(destino)) {
+      const estado = await fetch(`${destino}?accion=estado`, { signal: controller.signal, cache: 'no-store' });
+      if (!estado.ok || (await estado.json()).gastosIdempotentes !== true) {
+        throw new Error('Actualiza el Apps Script con apps-script/Code.gs. No se ha enviado el gasto.');
+      }
+      destinosVerificados.add(destino);
+    }
+    // Conservar el ID hasta confirmar el guardado permite reintentar sin volver a sumar.
+    const id = localStorage.getItem(clave) || Date.now() + '-' + crypto.randomUUID();
+    localStorage.setItem(clave, id);
+    const url = `${destino}?mes=${encodeURIComponent(mes)}&gasto=${encodeURIComponent(tipo)}&dia=${dia}&valor=${importe}&id=${encodeURIComponent(id)}`;
+    const res  = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Error desconocido');
+    if (data.id !== id) throw new Error('Respuesta sin identificador. Revisa el gasto en Sheets antes de continuar.');
+    localStorage.removeItem(clave);
 
     // Historial
     historial.unshift({ tipo:g.label, emoji:g.emoji, color:g.color, importe, mes, dia });
@@ -1159,11 +1185,17 @@ async function enviarGasto() {
     setTimeout(() => document.getElementById('success-overlay').classList.remove('show'), 1800);
 
     // Reset importe, keep date and tipo
-    document.getElementById('importe').value = '';
+    if (document.getElementById('importe').value.trim().replace(',', '.') === entrada) {
+      document.getElementById('importe').value = '';
+    }
 
   } catch(e) {
-    showToast('Error: ' + e.message);
+    showToast(e.name === 'AbortError' || e instanceof TypeError
+      ? 'Sin confirmación. Reintenta el mismo gasto para comprobar su guardado.'
+      : 'Error: ' + e.message);
   } finally {
+    clearTimeout(timeout);
+    enviandoGasto = false;
     btn.classList.remove('loading');
     btn.disabled = false;
   }
@@ -1339,35 +1371,101 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
                'Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 function doGet(e) {
-  const accion = e.parameter.accion;
-  if (accion === 'reporte')   return generarReporte();
-  if (accion === 'nuevo_anio') return generarNuevoAnio();
-
-  const mes   = e.parameter.mes;
-  const gasto = e.parameter.gasto;
-  const dia   = parseInt(e.parameter.dia);
-  const valor = parseFloat(e.parameter.valor);
-
-  if (mes && gasto && dia && !isNaN(valor)) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(mes);
-    if (!sheet) return resp({ ok: false, error: 'Pestaña no encontrada: ' + mes });
-    const fila = GASTOS[gasto];
-    if (!fila)  return resp({ ok: false, error: 'Gasto no encontrado: ' + gasto });
-    const col      = dia + 3;
-    const celda    = sheet.getRange(fila, col);
-    const actual   = celda.getValue();
-    const formula  = celda.getFormula();
-    const valorStr = valor.toString().replace('.', ',');
-    if (!actual && actual !== 0) {
-      celda.setValue(valor);
-    } else {
-      let base = (formula && formula.startsWith('='))
-        ? formula.slice(1)
-        : actual.toString().replace('.', ',');
-      celda.setFormula('=' + base + '+' + valorStr);
-    }
+  try {
+    const accion = e.parameter.accion;
+    if (accion === 'estado') return resp({ ok: true, gastosIdempotentes: true });
+    if (accion === 'reporte')   return generarReporte();
+    if (accion === 'nuevo_anio') return generarNuevoAnio();
+    return guardarGasto(e.parameter);
+  } catch (error) {
+    return resp({ ok: false, error: error.message });
   }
-  return resp({ ok: true });
+}
+
+function guardarGasto(p) {
+  const mes = p.mes;
+  const gasto = p.gasto;
+  const dia = Number(p.dia);
+  const valor = Number(p.valor);
+  const id = p.id || '';
+  const semana = 7 * 24 * 60 * 60 * 1000;
+  const ahora = Date.now();
+  const fechaId = Number(id.split('-')[0]);
+  if (!/^\\d{13}-[0-9a-f-]{36}$/i.test(id)) {
+    return resp({ ok: false, error: 'Actualiza la aplicación antes de guardar el gasto' });
+  }
+  // Los IDs vencidos se rechazan: nunca se vuelven a tratar como gastos nuevos.
+  if (ahora - fechaId > semana || fechaId > ahora + 300000) {
+    return resp({ ok: false, error: 'Envío caducado o reloj incorrecto. Revisa el gasto en Sheets antes de continuar' });
+  }
+  if (!MESES.includes(mes) || !Object.prototype.hasOwnProperty.call(GASTOS, gasto) ||
+      !Number.isInteger(dia) || dia < 1 || dia > 31 ||
+      !/^\\d+(\\.\\d{1,2})?$/.test(String(p.valor)) || !Number.isFinite(valor) || valor <= 0 ||
+      !Number.isSafeInteger(Math.round(valor * 100))) {
+    return resp({ ok: false, error: 'Datos del gasto no válidos' });
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(mes);
+    if (!sheet) return resp({ ok: false, error: 'Pestaña no encontrada: ' + mes });
+    const celda = sheet.getRange(GASTOS[gasto], dia + 3);
+    const props = PropertiesService.getScriptProperties();
+    const clave = 'gasto:' + id;
+    const firma = JSON.stringify([ss.getId(), mes, gasto, dia, valor]);
+    const guardado = props.getProperty(clave);
+    let registro = guardado ? JSON.parse(guardado) : null;
+    if (registro && registro.firma !== firma) {
+      return resp({ ok: false, error: 'El identificador ya pertenece a otro gasto' });
+    }
+    if (registro && registro.estado === 'confirmado') {
+      return resp({ ok: true, id, repetido: true });
+    }
+
+    if (!registro) {
+      // Acotar el almacenamiento; un ID eliminado ya estará caducado y será rechazado.
+      const propiedades = props.getProperties();
+      Object.keys(propiedades).forEach(k => {
+        if (k.startsWith('gasto:') && ahora - Number(k.slice(6).split('-')[0]) > semana) {
+          props.deleteProperty(k);
+        }
+      });
+      const actual = celda.getValue();
+      const formula = celda.getFormula();
+      if (actual !== '' && (typeof actual !== 'number' || !Number.isFinite(actual))) {
+        return resp({ ok: false, error: 'La celda contiene un valor no numérico; revísala en Sheets' });
+      }
+      const base = formula ? '(' + formula.slice(1) + ')' : String(actual).replace('.', ',');
+      registro = {
+        firma, estado: 'pendiente', anterior: actual, formulaAnterior: formula,
+        formula: formula || (actual !== '' && actual !== 0)
+          ? '=' + base + '+' + String(valor).replace('.', ',') : '',
+        valor
+      };
+      // Guardar el resultado previsto antes de escribir permite recuperar respuestas perdidas.
+      props.setProperty(clave, JSON.stringify(registro));
+    }
+
+    const formulaActual = celda.getFormula();
+    const valorActual = celda.getValue();
+    const aplicado = registro.formula
+      ? formulaActual === registro.formula
+      : formulaActual === '' && valorActual === registro.valor;
+    if (!aplicado) {
+      if (formulaActual !== registro.formulaAnterior || valorActual !== registro.anterior) {
+        return resp({ ok: false, error: 'La celda cambió durante un envío pendiente. Revisa el gasto en Sheets; no se ha vuelto a sumar' });
+      }
+      if (registro.formula) celda.setFormula(registro.formula);
+      else celda.setValue(registro.valor);
+      SpreadsheetApp.flush();
+    }
+    props.setProperty(clave, JSON.stringify({ firma, estado: 'confirmado' }));
+    return resp({ ok: true, id });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function generarReporte() {
