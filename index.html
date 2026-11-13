@@ -1000,10 +1000,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwcJ4kn-g1DhNnNdnQVBR1RfaDweKhMU0j8WCDZ6WS-r13laM_OrLmFSE_kUdt22ksG/exec';
+const URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxWL8Gt9v_ZTVl-KYH4rvpRsX7ceaCxzQTjgbaJG9Z1pS7FK3tDGHiZwGyWui9pvnDV/exec';
 
 // URL dinámica — se lee de localStorage, si no hay se usa la de por defecto
 function getURL() {
+  const anterior = 'https://script.google.com/macros/s/AKfycbwcJ4kn-g1DhNnNdnQVBR1RfaDweKhMU0j8WCDZ6WS-r13laM_OrLmFSE_kUdt22ksG/exec';
+  if (localStorage.getItem('gastos_script_url') === anterior) {
+    localStorage.removeItem('gastos_script_url');
+  }
   return localStorage.getItem('gastos_script_url') || URL_DEFAULT;
 }
 

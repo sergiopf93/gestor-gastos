@@ -141,3 +141,20 @@ test('El código Apps Script ofrecido para copiar coincide con su fuente', () =>
   assert.equal(vm.runInNewContext(embedded + '\nAPPS_SCRIPT_CODE'), source.trimEnd());
   new vm.Script(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
 });
+
+test('La URL nueva se usa por defecto, migra la antigua y conserva destinos personalizados', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  const anterior = 'https://script.google.com/macros/s/AKfycbwcJ4kn-g1DhNnNdnQVBR1RfaDweKhMU0j8WCDZ6WS-r13laM_OrLmFSE_kUdt22ksG/exec';
+  const actual = 'https://script.google.com/macros/s/AKfycbxWL8Gt9v_ZTVl-KYH4rvpRsX7ceaCxzQTjgbaJG9Z1pS7FK3tDGHiZwGyWui9pvnDV/exec';
+  for (const saved of [null, anterior, 'https://script.google.com/macros/s/personalizado/exec']) {
+    const storage = new Map(saved ? [['gastos_script_url', saved]] : []);
+    const context = vm.createContext({
+      window: { addEventListener() {} },
+      localStorage: { getItem: k => storage.get(k) ?? null, removeItem: k => storage.delete(k) }
+    });
+    vm.runInContext(script, context);
+    assert.equal(context.getURL(), saved && saved !== anterior ? saved : actual);
+    assert.equal(storage.get('gastos_script_url'), saved && saved !== anterior ? saved : undefined);
+  }
+});

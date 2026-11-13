@@ -6,6 +6,8 @@ El código fuente del servicio está en [apps-script/Code.gs](apps-script/Code.g
 
 ## Activar la corrección de duplicados
 
+La URL predeterminada apunta a la implementación actualizada facilitada por el usuario y comprobada mediante `accion=estado`. Si el navegador tenía guardada la antigua URL predeterminada, la app la migra automáticamente al nuevo destino. Otras URLs personalizadas se conservan.
+
 **Actualizar GitHub no actualiza Google Apps Script.** La web comprueba la compatibilidad antes de enviar el primer gasto a cada URL y bloqueará el guardado si el servicio sigue siendo antiguo.
 
 1. En el libro que recibe los gastos, abrir **Extensiones → Apps Script** y guardar una copia del código actual.

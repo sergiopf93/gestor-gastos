@@ -18,6 +18,7 @@ Revisión inicial: 13 de noviembre de 2026. Base inspeccionada: `f28633f` de `ma
 - Estado en memoria: categoría, fecha, historial y mes del calendario. Solo la URL del servicio persiste en el navegador.
 - Persistencia de negocio: Google Sheets. Automatizaciones: Google Apps Script y Drive.
 - `getURL()` elige la URL configurada o `URL_DEFAULT`. Las llamadas usan `fetch` y esperan JSON con `ok` y, en errores, `error`.
+- La URL predeterminada se actualizó a la implementación facilitada por el usuario, verificada con `{"ok":true,"gastosIdempotentes":true}`. Se retira automáticamente una configuración guardada que coincida con la antigua URL predeterminada; otros destinos personalizados se conservan.
 - `apps-script/Code.gs` es la fuente del servicio. `scripts/sync-apps-script.mjs` sincroniza `APPS_SCRIPT_CODE` para copiarlo desde la web. Modificar GitHub no actualiza una implementación de Apps Script existente.
 - No hay autenticación implementada en el frontend. Los permisos reales dependen de la implementación de Apps Script y de Google; no se han inspeccionado.
 - No hay configuración de despliegue en el repositorio inspeccionado. No se ha confirmado el alojamiento de producción.
